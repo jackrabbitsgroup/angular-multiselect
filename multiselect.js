@@ -724,14 +724,16 @@ var inst ={
 	*/
 	mouseInDiv: function(ee, instId, params) {
 		var coords;
-		if(params.coords)
+		if(params.coords) {
 			coords =params.coords;
+		}
 		else
 		{
-			var left1 =$("#"+instId).offset().left;
-			var top1 =$("#"+instId).offset().top;
-			var bottom1 =top1+$("#"+instId).height();
-			var right1 =left1+$("#"+instId).width();
+			var ele1 =angular.element(document.getElementById(instId));
+			var left1 =ele1.prop('offsetLeft');
+			var top1 =ele1.prop('offsetTop');
+			var bottom1 =top1 +ele1.prop('offsetHeight');
+			var right1 =left1 +ele1.prop('offsetWidth');
 			coords ={'left':left1, 'top':top1, 'bottom':bottom1, 'right':right1};
 		}
 		//if(1)		//doesn't work - ee doesn't have a pageX & pageY from blur
