@@ -3,7 +3,7 @@
 ## Why / When to use?
 Why not just use the popular `select2` or `chosen` and/or their angular wrapper equivalents?
 
-angular-multiselect has NO DEPENDENCIES - Including NO jQuery! Pure AngularJS!
+<b>angular-multiselect is tiny</b> since it has <b>NO DEPENDENCIES</b> - Including NO jQuery! It's pure javascript/AngularJS!
 
 Dependencies can have a large footprint and thus affect performance:
 - jQuery 2.0.3 is 237kb, 82kb compressed
