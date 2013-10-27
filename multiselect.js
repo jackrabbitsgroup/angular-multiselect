@@ -675,21 +675,23 @@ var inst ={
 	getFocusCoords: function(instId, params) {
 		var ids ={'displayBox':this.data[instId].ids.displayBox, 'dropdown':this.data[instId].ids.dropdown};
 		var eles ={};
-		eles.displayBox =$("#"+this.data[instId].ids.displayBox);
-		eles.dropdown =$("#"+this.data[instId].ids.dropdown);
+		// eles.displayBox =$("#"+this.data[instId].ids.displayBox);
+		eles.displayBox =angular.element(document.getElementById(this.data[instId].ids.displayBox));
+		// eles.dropdown =$("#"+this.data[instId].ids.dropdown);
+		eles.dropdown =angular.element(document.getElementById(this.data[instId].ids.dropdown));
 		
 		this.toggleDropdown(instId, {'show':true});		//required otherwise sometimes it won't be correct..
 
 		var top1 =0, left1 =0, right1 =0, bottom1 =0;
-		if(!eles.displayBox.offset() || !eles.dropdown.offset()) {
-			console.log('getFocusCoords offset() null..');		//is null in Testacular...
+		if(!eles.displayBox.prop('offsetTop') || !eles.dropdown.prop('offsetTop')) {
+			console.log('getFocusCoords prop offset null..');		//is null in Testacular...
 		}
 		else {
-			top1 =eles.displayBox.offset().top;
-			left1 =eles.displayBox.offset().left;
+			top1 =eles.displayBox.prop('offsetTop');
+			left1 =eles.displayBox.prop('offsetLeft');
 			//bottom1 =0;
-			bottom1 =eles.dropdown.offset().top +eles.dropdown.outerHeight();
-			right1 =left1 +eles.displayBox.outerWidth();
+			bottom1 =eles.dropdown.prop('offsetTop') +eles.dropdown.prop('offsetHeight');
+			right1 =left1 +eles.displayBox.prop('offsetWidth');
 		}
 		
 		this.data[instId].blurCoords ={'left':left1, 'right':right1, 'top':top1, 'bottom':bottom1};
