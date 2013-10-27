@@ -4,7 +4,7 @@
 	"authors": [
 		"Luke Madera <luke.madera@gmail.com>"
 	],
-	"description": "AngularJS multi select input",
+	"description": "AngularJS LIGHTWEIGHT (no jQuery or dependencies!) multi select input",
 	"keywords": [
 		"angular",
 		"AngularJS",

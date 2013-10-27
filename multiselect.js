@@ -1,7 +1,8 @@
 /**
-@todo2:
-- load more / calling function to load more opts & then update them (i.e. when scroll to bottom or click "more")
-	- use timeout for searching more & auto search more if result isn't found in default/javascript/local opts
+@todo
+- maybe
+	- load more / calling function to load more opts & then update them (i.e. when scroll to bottom or click "more")
+		- use timeout for searching more & auto search more if result isn't found in default/javascript/local opts
 
 USAGE functions:
 //to update options after it's been written / initialized:		//NOTE: this should NOT be necessary anymore as $watch is being used on opts
@@ -79,6 +80,8 @@ controller / js:
 
 //end: EXAMPLE usage
 */
+
+'use strict';
 
 angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultiselect', ['jrgMultiselectData', 'jrgLibArray', '$timeout', '$filter', function (jrgMultiselectData, libArray, $timeout, $filter) {
 
@@ -267,7 +270,7 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					//UPDATE2 - keyup wasn't working since TAB doesn't fire keyup reliably..
 					//UPDATE: 2013.05.13 - using keyup to handle tab character since TAB will ALWAYS be for a blur so don't need to worry about the timing issues - can just close it immediately
 					//trying to get blur to work but timing seems tricky - firing in wrong order (blur is going before click input..) so need timeout to fix the order
-					$("#"+jrgMultiselectData.data[attrs.id].ids.input).blur(function(evt) {
+					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('blur', function(evt) {
 						$timeout(function() {
 							if(!jrgMultiselectData.data[attrs.id].skipBlur) {		//only blur if not trying to skip it
 								if(attrs.debug) {
@@ -278,7 +281,7 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 						}, evtTimings.onBlurDelay);
 					});
 					
-					$("#"+jrgMultiselectData.data[attrs.id].ids.input).keyup(function(evt) {
+					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('keyup', function(evt) {
 						//if(evt.keyCode ==keycodes.tab) {		//if tab character, blur the options
 						if(0) {		//UPDATE: 2013.05.13 - TAB character doesn't seem to consistently fire.. but blur does.. so use blur instead..
 							if(attrs.debug) {
@@ -292,22 +295,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					});
 				}, 50);
 				
-				
-				/*
-				//15.5.
-				scope.blurInput =function(params) {
-					$("#"+jrgMultiselectData.data[attrs.id].ids.input).blur();
-				};
-				
-				scope.$on('jrgMultiselectBlur', function(evt, params) {
-					console.log('jrgMultiselectBlur '+attrs.id);
-					jrgMultiselectData.blurInput(attrs.id, {});
-				});
-				*/
-				
 				//15.
 				scope.focusInput =function(params) {
-					$("#"+jrgMultiselectData.data[attrs.id].ids.input).focus();
+					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
 					scope.clickInput({});
 				};
 				
@@ -453,7 +443,7 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					}
 					//reset search key & refocus on input
 					scope.modelInput ='';		//reset
-					$("#"+jrgMultiselectData.data[attrs.id].ids.input).focus();
+					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
 					//jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
 					scope.filterOpts({});
 					if(valChanged) {
@@ -476,7 +466,7 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					index1 =libArray.findArrayIndex(scope.ngModel, '', opt.val, {'oneD':true});
 					if(index1 >-1) {
 						valChanged =true;
-						scope.ngModel.remove(index1);
+						scope.ngModel.splice(index1, 1);
 						
 						removeDisplayOpt(opt, params);
 					}
@@ -500,9 +490,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				function removeDisplayOpt(opt, params) {
 					opt.selected ="0";
 					//remove from selected opts array
-					index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
+					var index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
 					if(index1 >-1) {
-						scope.selectedOpts.remove(index1);
+						scope.selectedOpts.splice(index1, 1);
 					}
 					if(params.bulkRemove ===undefined || !params.bulkRemove) {
 						scope.filterOpts({});
@@ -646,7 +636,7 @@ var inst ={
 	init: function(params) {
 		if(!this.inited) {
 			var thisObj =this;
-			$(document).click(function(evt) {
+			document.onclick =function(evt) {
 				for(var xx in thisObj.data) {
 					var instId =xx;
 					if(thisObj.data[instId].blurCoords.top >-1) {		//if it's been initialized
@@ -656,7 +646,7 @@ var inst ={
 						}
 					}
 				}
-			});
+			};
 			
 			this.inited =true;
 		}
@@ -673,11 +663,9 @@ var inst ={
 		var ele =document.getElementById(id1);
 		if(params.hide ===true) {
 			angular.element(ele).addClass('hidden');
-			// $("#"+id1).addClass('hidden');
 		}
 		else {
 			angular.element(ele).removeClass('hidden');
-			// $("#"+id1).removeClass('hidden');
 		}
 	},
 	
@@ -685,21 +673,21 @@ var inst ={
 	getFocusCoords: function(instId, params) {
 		var ids ={'displayBox':this.data[instId].ids.displayBox, 'dropdown':this.data[instId].ids.dropdown};
 		var eles ={};
-		eles.displayBox =$("#"+this.data[instId].ids.displayBox);
-		eles.dropdown =$("#"+this.data[instId].ids.dropdown);
+		eles.displayBox =angular.element(document.getElementById(this.data[instId].ids.displayBox));
+		eles.dropdown =angular.element(document.getElementById(this.data[instId].ids.dropdown));
 		
 		this.toggleDropdown(instId, {'show':true});		//required otherwise sometimes it won't be correct..
 
 		var top1 =0, left1 =0, right1 =0, bottom1 =0;
-		if(!eles.displayBox.offset() || !eles.dropdown.offset()) {
-			console.log('getFocusCoords offset() null..');		//is null in Testacular...
+		if(!eles.displayBox.prop('offsetTop') || !eles.dropdown.prop('offsetTop')) {
+			console.log('getFocusCoords prop offset null..');		//is null in Testacular...
 		}
 		else {
-			top1 =eles.displayBox.offset().top;
-			left1 =eles.displayBox.offset().left;
+			top1 =eles.displayBox.prop('offsetTop');
+			left1 =eles.displayBox.prop('offsetLeft');
 			//bottom1 =0;
-			bottom1 =eles.dropdown.offset().top +eles.dropdown.outerHeight();
-			right1 =left1 +eles.displayBox.outerWidth();
+			bottom1 =eles.dropdown.prop('offsetTop') +eles.dropdown.prop('offsetHeight');
+			right1 =left1 +eles.displayBox.prop('offsetWidth');
 		}
 		
 		this.data[instId].blurCoords ={'left':left1, 'right':right1, 'top':top1, 'bottom':bottom1};
@@ -734,14 +722,16 @@ var inst ={
 	*/
 	mouseInDiv: function(ee, instId, params) {
 		var coords;
-		if(params.coords)
+		if(params.coords) {
 			coords =params.coords;
+		}
 		else
 		{
-			var left1 =$("#"+instId).offset().left;
-			var top1 =$("#"+instId).offset().top;
-			var bottom1 =top1+$("#"+instId).height();
-			var right1 =left1+$("#"+instId).width();
+			var ele1 =angular.element(document.getElementById(instId));
+			var left1 =ele1.prop('offsetLeft');
+			var top1 =ele1.prop('offsetTop');
+			var bottom1 =top1 +ele1.prop('offsetHeight');
+			var right1 =left1 +ele1.prop('offsetWidth');
 			coords ={'left':left1, 'top':top1, 'bottom':bottom1, 'right':right1};
 		}
 		//if(1)		//doesn't work - ee doesn't have a pageX & pageY from blur
