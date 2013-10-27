@@ -272,7 +272,6 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					//UPDATE2 - keyup wasn't working since TAB doesn't fire keyup reliably..
 					//UPDATE: 2013.05.13 - using keyup to handle tab character since TAB will ALWAYS be for a blur so don't need to worry about the timing issues - can just close it immediately
 					//trying to get blur to work but timing seems tricky - firing in wrong order (blur is going before click input..) so need timeout to fix the order
-					// $("#"+jrgMultiselectData.data[attrs.id].ids.input).blur(function(evt) {
 					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('blur', function(evt) {
 						$timeout(function() {
 							if(!jrgMultiselectData.data[attrs.id].skipBlur) {		//only blur if not trying to skip it
@@ -284,7 +283,6 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 						}, evtTimings.onBlurDelay);
 					});
 					
-					// $("#"+jrgMultiselectData.data[attrs.id].ids.input).keyup(function(evt) {
 					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('keyup', function(evt) {
 						//if(evt.keyCode ==keycodes.tab) {		//if tab character, blur the options
 						if(0) {		//UPDATE: 2013.05.13 - TAB character doesn't seem to consistently fire.. but blur does.. so use blur instead..
@@ -301,7 +299,6 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				
 				//15.
 				scope.focusInput =function(params) {
-					// $("#"+jrgMultiselectData.data[attrs.id].ids.input).focus();
 					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
 					scope.clickInput({});
 				};
@@ -448,7 +445,6 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					}
 					//reset search key & refocus on input
 					scope.modelInput ='';		//reset
-					// $("#"+jrgMultiselectData.data[attrs.id].ids.input).focus();
 					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
 					//jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
 					scope.filterOpts({});
