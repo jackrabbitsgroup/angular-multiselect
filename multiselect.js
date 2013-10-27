@@ -675,9 +675,7 @@ var inst ={
 	getFocusCoords: function(instId, params) {
 		var ids ={'displayBox':this.data[instId].ids.displayBox, 'dropdown':this.data[instId].ids.dropdown};
 		var eles ={};
-		// eles.displayBox =$("#"+this.data[instId].ids.displayBox);
 		eles.displayBox =angular.element(document.getElementById(this.data[instId].ids.displayBox));
-		// eles.dropdown =$("#"+this.data[instId].ids.dropdown);
 		eles.dropdown =angular.element(document.getElementById(this.data[instId].ids.dropdown));
 		
 		this.toggleDropdown(instId, {'show':true});		//required otherwise sometimes it won't be correct..
