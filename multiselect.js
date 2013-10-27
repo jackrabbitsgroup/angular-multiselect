@@ -1,10 +1,8 @@
 /**
 @todo
-- remove jQuery dependency
-
-@todo2:
-- load more / calling function to load more opts & then update them (i.e. when scroll to bottom or click "more")
-	- use timeout for searching more & auto search more if result isn't found in default/javascript/local opts
+- maybe
+	- load more / calling function to load more opts & then update them (i.e. when scroll to bottom or click "more")
+		- use timeout for searching more & auto search more if result isn't found in default/javascript/local opts
 
 USAGE functions:
 //to update options after it's been written / initialized:		//NOTE: this should NOT be necessary anymore as $watch is being used on opts
@@ -638,7 +636,7 @@ var inst ={
 	init: function(params) {
 		if(!this.inited) {
 			var thisObj =this;
-			$(document).click(function(evt) {
+			document.onclick =function(evt) {
 				for(var xx in thisObj.data) {
 					var instId =xx;
 					if(thisObj.data[instId].blurCoords.top >-1) {		//if it's been initialized
@@ -648,7 +646,7 @@ var inst ={
 						}
 					}
 				}
-			});
+			};
 			
 			this.inited =true;
 		}
