@@ -1,4 +1,4 @@
-describe('uiMultiselect', function () {
+describe('jrgMultiselect', function () {
 	var elm, scope, $compile, $timeout;
 	var instId ='select1';
 	/*
@@ -8,15 +8,15 @@ describe('uiMultiselect', function () {
 	};
 	*/
 	
-	beforeEach(module('ui'));
+	// beforeEach(module('ui'));
 	
 	/**
 	@param params
 	*/
 	var createElm =function(params) {
-		//NOTE: the leading / wrapping div is NECESSARY otherwise the html is blank.. not sure why.. i.e. if just start with <div ui-lookup... as the first div it will NOT work..
+		//NOTE: the leading / wrapping div is NECESSARY otherwise the html is blank.. not sure why.. i.e. if just start with <div jrg-multiselect... as the first div it will NOT work..
 		var html ="<div>";
-			html+="<div ui-multiselect id='"+instId+"' select-opts='selectOpts' ng-model='selectVals' config='config'></div>";
+			html+="<div jrg-multiselect id='"+instId+"' select-opts='selectOpts' ng-model='selectVals' config='config'></div>";
 		html+="</div>";
 		elm =angular.element(html);
 		
@@ -41,15 +41,15 @@ describe('uiMultiselect', function () {
 	}));
 	
 	afterEach(function() {
-		angular.module('ui.config').value('ui.config', {});		// cleanup
+		// angular.module('ui.config').value('ui.config', {});		// cleanup
 	});
 	
 	it('should compile correctly', function() {
 		var ele1;
 		createElm({});
-		ele1 =elm.find('div.ui-multiselect-display-box');
+		ele1 =elm.find('div.jrg-multiselect-display-box');
 		expect(ele1.length).toBeGreaterThan(0);
-		ele1 =elm.find('div.ui-multiselect-dropdown-cont');
+		ele1 =elm.find('div.jrg-multiselect-dropdown-cont');
 		expect(ele1.length).toBeGreaterThan(0);
 	});
 	
@@ -59,7 +59,7 @@ describe('uiMultiselect', function () {
 	it('should start with options dropdown hidden', function() {
 		var ele1;
 		createElm({});
-		ele1 =elm.find('div.ui-multiselect-dropdown');
+		ele1 =elm.find('div.jrg-multiselect-dropdown');
 		expect(ele1.length).toBe(1);
 		
 		// scope.$apply();
@@ -81,12 +81,12 @@ describe('uiMultiselect', function () {
 	it('should hide options dropdown on blur', function() {
 		var ele1;
 		createElm({});
-		eleDropdown =elm.find('div.ui-multiselect-dropdown');
-		eleInput =elm.find('input.ui-multiselect-input');
+		eleDropdown =elm.find('div.jrg-multiselect-dropdown');
+		eleInput =elm.find('input.jrg-multiselect-input');
 		// expect(eleInput).toBe('');
 		$(eleInput.eq(0)).blur();
 		// scope.blurInput({});
-		scope.$broadcast('uiMultiselectBlur', {});
+		scope.$broadcast('jrgMultiselectBlur', {});
 		scope.$apply();
 		scope.$digest();
 		expect(eleDropdown.eq(0).hasClass('hidden')).toBe(true);
