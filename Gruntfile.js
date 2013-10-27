@@ -81,11 +81,9 @@ module.exports = function(grunt) {
 					mangle: false
 				},
 				build: {
-					files:  {}
-					/*
-					src:    'src/<%= cfgJson.name %>.js',
-					dest:   'build/<%= cfgJson.name %>.min.js'
-					*/
+					files:  {},
+					src:    'multiselect.js',
+					dest:   'multiselect.min.js'
 				}
 			},
 			less: {
@@ -113,7 +111,7 @@ module.exports = function(grunt) {
 		*/
 		// Default task(s).
 		// grunt.registerTask('default', ['jshint:beforeconcat', 'less:development', 'concat:devJs', 'concat:devCss']);
-		grunt.registerTask('default', ['jshint:beforeconcatQ', 'less:development']);
+		grunt.registerTask('default', ['jshint:beforeconcatQ', 'less:development', 'uglify:build']);
 	
 	}
 	init({});		//initialize here for defaults (init may be called again later within a task)
