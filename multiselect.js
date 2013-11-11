@@ -49,7 +49,8 @@ jrgMultiselectData service
 	@param {String} [id] Id for this element (required to use jrgMultiselectUpdateOpts event to update options)
 	@param {String} [placeholder] text/prompt to show in input box
 	@param {Number} [minLengthCreate =1] how many characters are required to be a valid new option
-	@param {String} [onChangeEvt] event to broadcast on change (or remove) options
+	@param {String} [onChangeEvt] event name to broadcast on change (or remove) options (replaces/instead of ng-change). Will be passed an object of:
+		@param {Mixed} val The current value (of ng-model)
 
 
 EXAMPLE usage:
