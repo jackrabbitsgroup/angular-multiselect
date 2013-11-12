@@ -94,6 +94,7 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			config:'=?'
 		},
 
+		replace: true,
 		template: function(element, attrs) {
 			var defaultsAttrs ={'placeholder':'Type to search', 'minLengthCreate':1,
 				'debug':false		//true to show console.log messages
