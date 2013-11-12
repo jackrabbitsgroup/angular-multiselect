@@ -87,14 +87,14 @@ controller / js:
 angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultiselect', ['jrgMultiselectData', 'jrgLibArray', '$timeout', '$filter', function (jrgMultiselectData, libArray, $timeout, $filter) {
 
 	return {
-		priority: 100,		//must be below 500 to work with lFormInput directive
+		priority: 100,		//must be below 500 to work with formInput directive
 		scope: {
 			selectOpts:'=',
 			ngModel:'=',
-			config:'='
+			config:'=?'
 		},
 
-		compile: function(element, attrs) {
+		template: function(element, attrs) {
 			var defaultsAttrs ={'placeholder':'Type to search', 'minLengthCreate':1,
 				'debug':false		//true to show console.log messages
 			};
@@ -130,487 +130,487 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				html+="</div>";
 			html+="</div>";
 			html+="</div>";
-			element.replaceWith(html);
+			return html;
+		},
+		
+		// link: function(scope, element, attrs, ngModel) {
+		link: function(scope, element, attrs) {
+			var xx;		//used in for loops later
+			var defaultsAttrs ={'placeholder':'Type to search', 'minLengthCreate':1,
+				'debug':false		//true to show console.log messages
+			};
+			//attrs =angular.extend(defaultsAttrs, attrs);
+			//attrs =libArray.extend(defaultsAttrs, attrs, {});
+			//attrs =$.extend({}, defaultsAttrs, attrs);
+			for(xx in defaultsAttrs) {
+				if(attrs[xx] ===undefined) {
+					attrs[xx] =defaultsAttrs[xx];
+				}
+			}
 			
-
-			return function(scope, element, attrs, ngModel) {
-				var xx;		//used in for loops later
-				var defaultsAttrs ={'placeholder':'Type to search', 'minLengthCreate':1,
-					'debug':false		//true to show console.log messages
-				};
-				//attrs =angular.extend(defaultsAttrs, attrs);
-				//attrs =libArray.extend(defaultsAttrs, attrs, {});
-				//attrs =$.extend({}, defaultsAttrs, attrs);
-				for(xx in defaultsAttrs) {
-					if(attrs[xx] ===undefined) {
-						attrs[xx] =defaultsAttrs[xx];
+			//IMPORTANT: set id's HERE (AFTER compile function) to ensure they're UNIQUE in case this directive is in an ng-repeat!!!
+			// var oldId =attrs.id;
+			attrs.id ="jrgMultiselect"+Math.random().toString(36).substring(7);
+			
+			attrs.ids ={
+				'displayBox':attrs.id+"DisplayBox",
+				'input':attrs.id+"Input",
+				'dropdown':attrs.id+"Dropdown",
+				'selectedOpts':attrs.id+"SelectedOpts",
+				'selectedOpt':attrs.id+"SelectedOpt",
+				'remove':attrs.id+"Remove",
+				'opt':attrs.id+"Opt"
+			};
+			
+			//put on scope since that's how id's are actually given to the elements (this is the ONLY way I could get this work and to have unique id's inside an ng-repeat..)
+			scope.id =attrs.id;
+			scope.ids =attrs.ids;
+			
+			jrgMultiselectData.data[attrs.id] ={
+				'ids':attrs.ids,
+				'opts':{},		//NOTE: options are passed in as [] but converted to object / associative array here
+				'blurCoords':{'left':-1, 'right':-1, 'top':-1, 'bottom':-1},
+				'skipBlur':false,		//trigger to avoid immediate close for things like clicking the input
+				//'ngModel':attrs.ngModel,
+				//'scope':scope,
+				//'ngModel':ngModel,
+				'lastSearchVal':'',		//default to blank
+				'attrs':attrs,
+				'maxWrite':25		//int of how many to stop writing after (for performance, rest are still searchable)
+			};
+			
+			jrgMultiselectData.init({});
+			
+			
+			
+			//used to be in controller but timing is off and controller seems to be executed BEFORE this link function so the attrs.id is not updated yet... so had to move everything from the controller into the link function..
+			//0. init vars, etc.
+			
+			scope.config1 ={};		//can't use scope.config in case it's not defined/set otherwise get "Non-assignable model expression.." error..
+			var defaultConfig ={
+				createNew: 0
+			};
+			if(!scope.config || scope.config ===undefined) {
+				scope.config1 =defaultConfig;
+			}
+			else {		//extend defaults
+				for(xx in defaultConfig) {
+					if(scope.config[xx] ===undefined) {
+						scope.config1[xx] =defaultConfig[xx];
+					}
+					else {
+						scope.config1[xx] =scope.config[xx];
 					}
 				}
-				
-				//IMPORTANT: set id's HERE (AFTER compile function) to ensure they're UNIQUE in case this directive is in an ng-repeat!!!
-				// var oldId =attrs.id;
-				attrs.id ="jrgMultiselect"+Math.random().toString(36).substring(7);
-				
-				attrs.ids ={
-					'displayBox':attrs.id+"DisplayBox",
-					'input':attrs.id+"Input",
-					'dropdown':attrs.id+"Dropdown",
-					'selectedOpts':attrs.id+"SelectedOpts",
-					'selectedOpt':attrs.id+"SelectedOpt",
-					'remove':attrs.id+"Remove",
-					'opt':attrs.id+"Opt"
-				};
-				
-				//put on scope since that's how id's are actually given to the elements (this is the ONLY way I could get this work and to have unique id's inside an ng-repeat..)
-				scope.id =attrs.id;
-				scope.ids =attrs.ids;
-				
-				jrgMultiselectData.data[attrs.id] ={
-					'ids':attrs.ids,
-					'opts':{},		//NOTE: options are passed in as [] but converted to object / associative array here
-					'blurCoords':{'left':-1, 'right':-1, 'top':-1, 'bottom':-1},
-					'skipBlur':false,		//trigger to avoid immediate close for things like clicking the input
-					//'ngModel':attrs.ngModel,
-					//'scope':scope,
-					//'ngModel':ngModel,
-					'lastSearchVal':'',		//default to blank
-					'attrs':attrs,
-					'maxWrite':25		//int of how many to stop writing after (for performance, rest are still searchable)
-				};
-				
-				jrgMultiselectData.init({});
-				
-				
-				
-				//used to be in controller but timing is off and controller seems to be executed BEFORE this link function so the attrs.id is not updated yet... so had to move everything from the controller into the link function..
-				//0. init vars, etc.
-				
-				scope.config1 ={};		//can't use scope.config in case it's not defined/set otherwise get "Non-assignable model expression.." error..
-				var defaultConfig ={
-					createNew: 0
-				};
-				if(!scope.config || scope.config ===undefined) {
-					scope.config1 =defaultConfig;
-				}
-				else {		//extend defaults
-					for(xx in defaultConfig) {
-						if(scope.config[xx] ===undefined) {
-							scope.config1[xx] =defaultConfig[xx];
-						}
-						else {
-							scope.config1[xx] =scope.config[xx];
-						}
-					}
-				}
+			}
+		
+			if(scope.ngModel ===undefined) {
+				scope.ngModel =[];
+			}
+			else if(typeof(scope.ngModel) =='string') {		//convert to array
+				scope.ngModel =[scope.ngModel];
+			}
+			if(scope.options ===undefined) {
+				scope.options ={};
+			}
+			scope.modelInput ='';
+			scope.loadingOpt =false;
+			scope.createNewAllowed =true;		//will be true if create new is currently allowed (i.e. if no duplicate options that already exist with the current input value)
 			
-				if(scope.ngModel ===undefined) {
-					scope.ngModel =[];
-				}
-				else if(typeof(scope.ngModel) =='string') {		//convert to array
-					scope.ngModel =[scope.ngModel];
-				}
-				if(scope.options ===undefined) {
-					scope.options ={};
-				}
-				scope.modelInput ='';
-				scope.loadingOpt =false;
-				scope.createNewAllowed =true;		//will be true if create new is currently allowed (i.e. if no duplicate options that already exist with the current input value)
-				
-				var keycodes ={
-					'enter':13,
-					'tab':9
-				};
-				
-				//define timings for $timeout's, which must be precise to work properly (so events fire in the correct order)
-				//@todo - fix this so it works 100% of the time - sometimes the options dropdown will close 
-				var evtTimings ={
-					'selectOptBlurReset':225,		//must be LONGER than onBlurDelay to keep options displayed after select one
-					'clickInputBlurReset':225,
-					'onBlurDelay':125		//this must be long enough to ensure the selectOpts click function fires BEFORE this (otherwise the options dropdown will close BEFORE the click event fires and the option will NOT be selected at all..
-				};
-				
-				/**
-				Form object {} of all options by category; start with just one - the default select opts. This is to allow multiple different types of opts to be used/loaded (i.e. when loading more results from AJAX or when user creates a new option) so can differentiate them and append to/update or show only certain categories of options. All these categories are later merged into one scope.opts array for actual use.
-				@property optsList
-				@type Object
-				*/
-				var optsList ={
-					'default':libArray.copyArray(scope.selectOpts, {})
-				};
-				
-				/**
-				@property scope.opts A list of ALL options (combines all optsList categories into one final array of all options). Also adds a few extra key properties to each option, such as "selected". Each item is an object with the following properties detailed below.
-					@param {Mixed} val The value of the option
-					@param {String} name The display value (the text to display)
-					@param {String} selected "0" if this option is not selected, "1" if this option is currently selected
-				@type Array
-				*/
-				scope.opts =[];
-				
-				/**
-				@property scope.filteredOpts The subset of scope.opts that match the search criteria AND are not already selected. These are formed in the scope.filterOpts function.
-				@type Array
-				*/
-				scope.filteredOpts =[];
-				
-				/**
-				@property scope.selectedOpts The displayed selected options (a subset of 
-				@type Array
-				*/
-				scope.selectedOpts =[];		//start with none selected
+			var keycodes ={
+				'enter':13,
+				'tab':9
+			};
+			
+			//define timings for $timeout's, which must be precise to work properly (so events fire in the correct order)
+			//@todo - fix this so it works 100% of the time - sometimes the options dropdown will close 
+			var evtTimings ={
+				'selectOptBlurReset':225,		//must be LONGER than onBlurDelay to keep options displayed after select one
+				'clickInputBlurReset':225,
+				'onBlurDelay':125		//this must be long enough to ensure the selectOpts click function fires BEFORE this (otherwise the options dropdown will close BEFORE the click event fires and the option will NOT be selected at all..
+			};
+			
+			/**
+			Form object {} of all options by category; start with just one - the default select opts. This is to allow multiple different types of opts to be used/loaded (i.e. when loading more results from AJAX or when user creates a new option) so can differentiate them and append to/update or show only certain categories of options. All these categories are later merged into one scope.opts array for actual use.
+			@property optsList
+			@type Object
+			*/
+			var optsList ={
+				'default':libArray.copyArray(scope.selectOpts, {})
+			};
+			
+			/**
+			@property scope.opts A list of ALL options (combines all optsList categories into one final array of all options). Also adds a few extra key properties to each option, such as "selected". Each item is an object with the following properties detailed below.
+				@param {Mixed} val The value of the option
+				@param {String} name The display value (the text to display)
+				@param {String} selected "0" if this option is not selected, "1" if this option is currently selected
+			@type Array
+			*/
+			scope.opts =[];
+			
+			/**
+			@property scope.filteredOpts The subset of scope.opts that match the search criteria AND are not already selected. These are formed in the scope.filterOpts function.
+			@type Array
+			*/
+			scope.filteredOpts =[];
+			
+			/**
+			@property scope.selectedOpts The displayed selected options (a subset of 
+			@type Array
+			*/
+			scope.selectedOpts =[];		//start with none selected
 
+			
+			
+			//need timeout otherwise element isn't defined yet and events won't be registered..
+			$timeout(function() {
+				//get focus coords for toggling dropdown on blur and then hide dropdown
+				// console.log('setting focus, blur, etc. id: '+attrs.id+' jrgMultiselectData.data[attrs.id].ids.input: '+jrgMultiselectData.data[attrs.id].ids.input);
+				jrgMultiselectData.getFocusCoords(attrs.id, {});		//BEFORE dropdown is hidden, get coords so can handle blur
+				jrgMultiselectData.toggleDropdown(attrs.id, {'hide':true});		//start dropdown hidden
 				
-				
-				//need timeout otherwise element isn't defined yet and events won't be registered..
-				$timeout(function() {
-					//get focus coords for toggling dropdown on blur and then hide dropdown
-					// console.log('setting focus, blur, etc. id: '+attrs.id+' jrgMultiselectData.data[attrs.id].ids.input: '+jrgMultiselectData.data[attrs.id].ids.input);
-					jrgMultiselectData.getFocusCoords(attrs.id, {});		//BEFORE dropdown is hidden, get coords so can handle blur
-					jrgMultiselectData.toggleDropdown(attrs.id, {'hide':true});		//start dropdown hidden
-					
-					//UPDATE2 - keyup wasn't working since TAB doesn't fire keyup reliably..
-					//UPDATE: 2013.05.13 - using keyup to handle tab character since TAB will ALWAYS be for a blur so don't need to worry about the timing issues - can just close it immediately
-					//trying to get blur to work but timing seems tricky - firing in wrong order (blur is going before click input..) so need timeout to fix the order
-					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('blur', function(evt) {
-						$timeout(function() {
-							if(!jrgMultiselectData.data[attrs.id].skipBlur) {		//only blur if not trying to skip it
-								if(attrs.debug) {
-									console.log('skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
-								}
-								jrgMultiselectData.blurInput(attrs.id, {});
-							}
-						}, evtTimings.onBlurDelay);
-					});
-					
-					angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('keyup', function(evt) {
-						//if(evt.keyCode ==keycodes.tab) {		//if tab character, blur the options
-						if(0) {		//UPDATE: 2013.05.13 - TAB character doesn't seem to consistently fire.. but blur does.. so use blur instead..
+				//UPDATE2 - keyup wasn't working since TAB doesn't fire keyup reliably..
+				//UPDATE: 2013.05.13 - using keyup to handle tab character since TAB will ALWAYS be for a blur so don't need to worry about the timing issues - can just close it immediately
+				//trying to get blur to work but timing seems tricky - firing in wrong order (blur is going before click input..) so need timeout to fix the order
+				angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('blur', function(evt) {
+					$timeout(function() {
+						if(!jrgMultiselectData.data[attrs.id].skipBlur) {		//only blur if not trying to skip it
 							if(attrs.debug) {
 								console.log('skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
 							}
 							jrgMultiselectData.blurInput(attrs.id, {});
 						}
-						else {		//handle other key inputs (i.e. enter key to select option)
-							scope.keydownInput(evt, {});
+					}, evtTimings.onBlurDelay);
+				});
+				
+				angular.element(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)).bind('keyup', function(evt) {
+					//if(evt.keyCode ==keycodes.tab) {		//if tab character, blur the options
+					if(0) {		//UPDATE: 2013.05.13 - TAB character doesn't seem to consistently fire.. but blur does.. so use blur instead..
+						if(attrs.debug) {
+							console.log('skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
 						}
-					});
-				}, 50);
-				
-				//15.
-				scope.focusInput =function(params) {
-					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
-					scope.clickInput({});
-				};
-				
-				/**
-				UPDATE: 2013.05.13 - does NOT work all the time so no longer using it. When had another form on the page this wouldn't fire at all.. ui-keypress may have a bug??!
-				Handles hitting tab on input to blur it
-				@toc 16.
-				@method scope.keyupInput
-				@param {Object} params
-				*/
-				/*
-				scope.keyupInput =function(params) {
-					console.log('keyupTabInput');
-					if(!jrgMultiselectData.data[attrs.id].skipBlur) {
 						jrgMultiselectData.blurInput(attrs.id, {});
 					}
-				};
-				*/
-				
-				
-				//14.
-				/*
-				@param optsArray =array [] of option values to select (will go through al the options and match the values to them then call the "selectOpt" function for each one that's matched)
-				@param params
-				*/
-				function selectOpts(optsArray, params) {
-					for(var ii=0; ii<optsArray.length; ii++) {
-						for(var xx in optsList) {		//go through each type and search for match (break once get the first one)
-							var index1 =libArray.findArrayIndex(optsList[xx], 'val', optsArray[ii], {});
-							if(index1 >-1) {		//found it
-								scope.selectOpt(optsList[xx][index1], {});
-								break;		//don't bother searching the other option types
-							}
-						}
-					}
-				}
-				
-				/**
-				Removes either all or a subset of selected values (and updates display as well to remove options)
-				@toc 17.
-				@method removeOpts
-				@param {Object}
-					@param {Array} [valsToRemove] The values of the options to remove (i.e. that match scope.ngModel)
-					@param {Boolean} [displayOnly] True to only remove the option from the selected array / DOM (i.e. if coming from an ngModel $watch call and the ngModel has already been updated, in which case ONLY want to update the display values as the model has already been updated)
-					// @param {Boolean} [all] True to remove ALL selected values (based on scope.ngModel) and displayed options
-				*/
-				function removeOpts(params) {
-					var defaults ={
-						displayOnly: false
-					};
-					//extend defaults
-					var xx;
-					for(xx in defaults) {
-						if(params[xx] ===undefined) {
-							params[xx] =defaults[xx];
-						}
-					}
-					if(params.valsToRemove !==undefined && params.valsToRemove.length >0) {
-						var ii;
-						for(ii =0; ii<params.valsToRemove.length; ii++) {
-							//find full opt object in scope.opts
-							var index1 =libArray.findArrayIndex(scope.opts, 'val', params.valsToRemove[ii], {});
-							if(index1 >-1) {		//if found, remove it. It's important to pass in the full option from scope.opts
-								if(params.displayOnly) {
-									removeDisplayOpt(scope.opts[index1], {bulkRemove: true});
-								}
-								else {
-									scope.removeOpt(scope.opts[index1], {bulkRemove: true});
-								}
-							}
-						}
-						//re-filter now that all options are updated
-						scope.filterOpts({});
-					}
-				}
-				
-				//13.
-				scope.keydownInput =function(evt, params) {
-					if(evt.keyCode ==keycodes.enter) {
-						//alert("enter");
-						if(scope.filteredOpts.length >0) {		//select first one
-							scope.selectOpt(scope.filteredOpts[0], {});
-						}
-						else if(scope.config1.createNew) {		//create new
-							scope.createNewOpt({});
-						}
-					}
-				};
-				
-				//11.
-				scope.filterOpts =function(params) {
-					scope.filteredOpts =$filter('filter')(scope.opts, {name:scope.modelInput, selected:"0"});
-					if(scope.filteredOpts.length <1) {
-						if(scope.config1.createNew && createNewCheck({}) ) {
-							scope.createNewAllowed =true;
-						}
-						else {
-							scope.createNewAllowed =false;
-						}
-					}
-				};
-				
-				//6.
-				scope.clickInput =function(params) {
-					scope.filterOpts({});
-					jrgMultiselectData.data[attrs.id].skipBlur =true;		//avoid immediate closing from document click handler
-					jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
-					//fail safe to clear skip blur trigger (sometimes it doesn't get immediately called..)
-					$timeout(function() {
-						jrgMultiselectData.data[attrs.id].skipBlur =false;		//reset
-						if(attrs.debug) {
-							console.log('clickInput skipBlur reset, skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
-						}
-					}, evtTimings.clickInputBlurReset);
-				};
-				
-				//7.
-				scope.selectOpt =function(opt, params) {
-					var valChanged =false;		//track if something actually changed (other than just display)
-					//alert(opt.name);
-					jrgMultiselectData.data[attrs.id].skipBlur =true;		//avoid immediate closing from document click handler
-					if(attrs.debug) {
-						console.log('selectOpt. skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
-					}
-					$timeout(function() {
-						jrgMultiselectData.data[attrs.id].skipBlur =false;		//reset
-						if(attrs.debug) {
-							console.log('selectOpt skipBlur reset, skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
-						}
-					}, evtTimings.selectOptBlurReset);
-					var index1;
-					index1 =libArray.findArrayIndex(scope.ngModel, '', opt.val, {'oneD':true});
-					if(index1 <0) {
-						scope.ngModel.push(opt.val);
-						valChanged =true;
-					}
-					//check opt display separately (i.e. if initing values)
-					//var index1 =libArray.findArrayIndex(scope.selectedOpts, '', opt.val, {'oneD':true});
-					index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
-					if(index1 <0) {
-						opt.selected ="1";
-						scope.selectedOpts.push(opt);
-					}
-					//reset search key & refocus on input
-					scope.modelInput ='';		//reset
-					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
-					//jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
-					scope.filterOpts({});
-					if(valChanged) {
-						if(attrs.onChangeEvt !==undefined) {
-							scope.$emit(attrs.onChangeEvt, {'val':scope.ngModel});
-						}
-					}
-				};
-				
-				/**
-				@toc 8.
-				@param {Object} opt Object with option info. This MUST be a subset (one particular option item) of scope.opts as it's properties will be directly updated and are expected to update the scope.opts array accordingly.
-					@param {Mixed} val Value to remove
-				@param {Object} params
-					@param {Boolean} bulkRemove True if this function is being called in a loop so just want to remove the option and do the bare minimum (i.e. for performance, won't call scope.filterOpts each time - the calling function will be responsible for calling this ONCE at the end of the loop)
-				*/
-				scope.removeOpt =function(opt, params) {
-					var valChanged =false;
-					var index1;
-					index1 =libArray.findArrayIndex(scope.ngModel, '', opt.val, {'oneD':true});
-					if(index1 >-1) {
-						valChanged =true;
-						scope.ngModel.splice(index1, 1);
-						
-						removeDisplayOpt(opt, params);
-					}
-					
-					if(valChanged) {
-						if(attrs.onChangeEvt !==undefined) {
-							scope.$emit(attrs.onChangeEvt, {'val':scope.ngModel});
-						}
-					}
-				};
-				
-				/**
-				This removes a (selected) option from the scope.selectedOpts array (thus updating the DOM). It also re-filters the options by calling scope.filterOpts
-				@toc 8.5.
-				@method removeDisplayOpt
-				@param {Object} opt Object with option info. This MUST be a subset (one particular option item) of scope.opts as it's properties will be directly updated and are expected to update the scope.opts array accordingly.
-					@param {Mixed} val Value to remove
-				@param {Object} params
-					@param {Boolean} bulkRemove True if this function is being called in a loop so just want to remove the option and do the bare minimum (i.e. for performance, won't call scope.filterOpts each time - the calling function will be responsible for calling this ONCE at the end of the loop)
-				*/
-				function removeDisplayOpt(opt, params) {
-					opt.selected ="0";
-					//remove from selected opts array
-					var index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
-					if(index1 >-1) {
-						scope.selectedOpts.splice(index1, 1);
-					}
-					if(params.bulkRemove ===undefined || !params.bulkRemove) {
-						scope.filterOpts({});
-					}
-				}
-				
-				//9.
-				/*
-				@param params
-					id (required) =instance id for this directive (to indentify which select to update opts for); must match the "id" attribute declared on this directive
-					opts (required) =array []{} of opts to update/add
-					type (defaults to 'default') =string of which optsList to add/update these to
-					replace (default true) =boolean true if these new opts will overwrite existing ones of this type (if false, they'll just be appended to the existing ones - NOTE: new opts should not conflict with existing ones; don't pass in any duplicates as these are NOT checked for here)
-				*/
-				scope.$on('jrgMultiselectUpdateOpts', function(evt, params) {
-					if(params.id ==attrs.id) {		//scope.$on will be called on EVERY instance BUT only want to update ONE of them
-						var defaults ={'type':'default', 'replace':true};
-						params =angular.extend(defaults, params);
-						if(optsList[params.type] ===undefined || params.replace ===true) {
-							optsList[params.type] =params.opts;
-						}
-						else {
-							optsList[params.type] =optsList[params.type].concat(params.opts);
-						}
-						formOpts({});		//re-form opts with the new ones
-						selectOpts(scope.ngModel, {});
+					else {		//handle other key inputs (i.e. enter key to select option)
+						scope.keydownInput(evt, {});
 					}
 				});
-				
-				//10.
-				/*
-				concats all types in optsList into a final set of options to be selected from / displayed
-				@param params
-					//unselectAll =boolean true to unselect all opts as well
-					keys (optional) =array [] of which optsList keys to copy over; otherwise all will be copied over
-				*/
-				function formOpts(params) {
-					var keys, ii;
-					if(params.keys !==undefined) {
-						keys =params.keys;
-					}
-					else {		//copy them all
-						keys =[];
-						var counter =0;
-						for(var xx in optsList) {
-							keys[counter] =xx;
-							counter++;
-						}
-					}
-					scope.opts =[];		//reset first
-					for(ii =0; ii<keys.length; ii++) {
-						scope.opts =scope.opts.concat(optsList[keys[ii]]);
-					}
-					
-					//add some keys to each opt
-					for(ii =0; ii<scope.opts.length; ii++) {
-						var index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', scope.opts[ii].val, {});
-						if(index1 <0) {		//if not selected
-							scope.opts[ii].selected ="0";		//start visible
-						}
-					}
-				}
-				
-				//12.
-				scope.createNewOpt =function(params) {
-					if(createNewCheck({})) {
-						if(optsList.created ===undefined) {
-							optsList.created =[];
-						}
-						//var curIndex =optsList.created.length;
-						var newOpt ={'val':scope.modelInput, 'name':scope.modelInput, 'selected':'0'};
-						optsList.created[optsList.created.length] =newOpt;
-						formOpts({});		//re-form opts with the new ones
-						//select this opt
-						scope.selectOpt(newOpt, {});
-					}
-				};
-				
-				//12.5.
-				function createNewCheck(params) {
-					var valid =false;
-					var val =scope.modelInput;
-					if(val.length >=attrs.minLengthCreate) {
-						//make sure this value doesn't already exist
-						var index1 =libArray.findArrayIndex(scope.opts, 'val', val, {});
-						if(index1 <0) {		//if doesn't already exist
-							valid =true;
-						}
-					}
-					return valid;
-				}
-				
-				//0.5.
-				//copy default (passed in) opts to final / combined (searchable) opts
-				formOpts({});
-				//select default opts
-				selectOpts(scope.ngModel, {});
-				
-				//0.75.
-				scope.$watch('ngModel', function(newVal, oldVal) {
-					//if(newVal !=oldVal) {
-					//if(1) {		//comparing equality on arrays doesn't work well..
-					if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
-						removeOpts({valsToRemove: oldVal, displayOnly:true});		//remove old values first
-						selectOpts(scope.ngModel, {});
-					}
-				});
-				
-				//0.8.
-				scope.$watch('selectOpts', function(newVal, oldVal) {
-					if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
-						optsList['default'] =newVal;
-						formOpts({});		//re-form opts with the new ones
-						selectOpts(scope.ngModel, {});
-					}
-				});
+			}, 50);
+			
+			//15.
+			scope.focusInput =function(params) {
+				document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				scope.clickInput({});
 			};
+			
+			/**
+			UPDATE: 2013.05.13 - does NOT work all the time so no longer using it. When had another form on the page this wouldn't fire at all.. ui-keypress may have a bug??!
+			Handles hitting tab on input to blur it
+			@toc 16.
+			@method scope.keyupInput
+			@param {Object} params
+			*/
+			/*
+			scope.keyupInput =function(params) {
+				console.log('keyupTabInput');
+				if(!jrgMultiselectData.data[attrs.id].skipBlur) {
+					jrgMultiselectData.blurInput(attrs.id, {});
+				}
+			};
+			*/
+			
+			
+			//14.
+			/*
+			@param optsArray =array [] of option values to select (will go through al the options and match the values to them then call the "selectOpt" function for each one that's matched)
+			@param params
+			*/
+			function selectOpts(optsArray, params) {
+				for(var ii=0; ii<optsArray.length; ii++) {
+					for(var xx in optsList) {		//go through each type and search for match (break once get the first one)
+						var index1 =libArray.findArrayIndex(optsList[xx], 'val', optsArray[ii], {});
+						if(index1 >-1) {		//found it
+							scope.selectOpt(optsList[xx][index1], {});
+							break;		//don't bother searching the other option types
+						}
+					}
+				}
+			}
+			
+			/**
+			Removes either all or a subset of selected values (and updates display as well to remove options)
+			@toc 17.
+			@method removeOpts
+			@param {Object}
+				@param {Array} [valsToRemove] The values of the options to remove (i.e. that match scope.ngModel)
+				@param {Boolean} [displayOnly] True to only remove the option from the selected array / DOM (i.e. if coming from an ngModel $watch call and the ngModel has already been updated, in which case ONLY want to update the display values as the model has already been updated)
+				// @param {Boolean} [all] True to remove ALL selected values (based on scope.ngModel) and displayed options
+			*/
+			function removeOpts(params) {
+				var defaults ={
+					displayOnly: false
+				};
+				//extend defaults
+				var xx;
+				for(xx in defaults) {
+					if(params[xx] ===undefined) {
+						params[xx] =defaults[xx];
+					}
+				}
+				if(params.valsToRemove !==undefined && params.valsToRemove.length >0) {
+					var ii;
+					for(ii =0; ii<params.valsToRemove.length; ii++) {
+						//find full opt object in scope.opts
+						var index1 =libArray.findArrayIndex(scope.opts, 'val', params.valsToRemove[ii], {});
+						if(index1 >-1) {		//if found, remove it. It's important to pass in the full option from scope.opts
+							if(params.displayOnly) {
+								removeDisplayOpt(scope.opts[index1], {bulkRemove: true});
+							}
+							else {
+								scope.removeOpt(scope.opts[index1], {bulkRemove: true});
+							}
+						}
+					}
+					//re-filter now that all options are updated
+					scope.filterOpts({});
+				}
+			}
+			
+			//13.
+			scope.keydownInput =function(evt, params) {
+				if(evt.keyCode ==keycodes.enter) {
+					//alert("enter");
+					if(scope.filteredOpts.length >0) {		//select first one
+						scope.selectOpt(scope.filteredOpts[0], {});
+					}
+					else if(scope.config1.createNew) {		//create new
+						scope.createNewOpt({});
+					}
+				}
+			};
+			
+			//11.
+			scope.filterOpts =function(params) {
+				scope.filteredOpts =$filter('filter')(scope.opts, {name:scope.modelInput, selected:"0"});
+				if(scope.filteredOpts.length <1) {
+					if(scope.config1.createNew && createNewCheck({}) ) {
+						scope.createNewAllowed =true;
+					}
+					else {
+						scope.createNewAllowed =false;
+					}
+				}
+			};
+			
+			//6.
+			scope.clickInput =function(params) {
+				scope.filterOpts({});
+				jrgMultiselectData.data[attrs.id].skipBlur =true;		//avoid immediate closing from document click handler
+				jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
+				//fail safe to clear skip blur trigger (sometimes it doesn't get immediately called..)
+				$timeout(function() {
+					jrgMultiselectData.data[attrs.id].skipBlur =false;		//reset
+					if(attrs.debug) {
+						console.log('clickInput skipBlur reset, skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
+					}
+				}, evtTimings.clickInputBlurReset);
+			};
+			
+			//7.
+			scope.selectOpt =function(opt, params) {
+				var valChanged =false;		//track if something actually changed (other than just display)
+				//alert(opt.name);
+				jrgMultiselectData.data[attrs.id].skipBlur =true;		//avoid immediate closing from document click handler
+				if(attrs.debug) {
+					console.log('selectOpt. skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
+				}
+				$timeout(function() {
+					jrgMultiselectData.data[attrs.id].skipBlur =false;		//reset
+					if(attrs.debug) {
+						console.log('selectOpt skipBlur reset, skipBlur: '+jrgMultiselectData.data[attrs.id].skipBlur);
+					}
+				}, evtTimings.selectOptBlurReset);
+				var index1;
+				index1 =libArray.findArrayIndex(scope.ngModel, '', opt.val, {'oneD':true});
+				if(index1 <0) {
+					scope.ngModel.push(opt.val);
+					valChanged =true;
+				}
+				//check opt display separately (i.e. if initing values)
+				//var index1 =libArray.findArrayIndex(scope.selectedOpts, '', opt.val, {'oneD':true});
+				index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
+				if(index1 <0) {
+					opt.selected ="1";
+					scope.selectedOpts.push(opt);
+				}
+				//reset search key & refocus on input
+				scope.modelInput ='';		//reset
+				document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				//jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
+				scope.filterOpts({});
+				if(valChanged) {
+					if(attrs.onChangeEvt !==undefined) {
+						scope.$emit(attrs.onChangeEvt, {'val':scope.ngModel});
+					}
+				}
+			};
+			
+			/**
+			@toc 8.
+			@param {Object} opt Object with option info. This MUST be a subset (one particular option item) of scope.opts as it's properties will be directly updated and are expected to update the scope.opts array accordingly.
+				@param {Mixed} val Value to remove
+			@param {Object} params
+				@param {Boolean} bulkRemove True if this function is being called in a loop so just want to remove the option and do the bare minimum (i.e. for performance, won't call scope.filterOpts each time - the calling function will be responsible for calling this ONCE at the end of the loop)
+			*/
+			scope.removeOpt =function(opt, params) {
+				var valChanged =false;
+				var index1;
+				index1 =libArray.findArrayIndex(scope.ngModel, '', opt.val, {'oneD':true});
+				if(index1 >-1) {
+					valChanged =true;
+					scope.ngModel.splice(index1, 1);
+					
+					removeDisplayOpt(opt, params);
+				}
+				
+				if(valChanged) {
+					if(attrs.onChangeEvt !==undefined) {
+						scope.$emit(attrs.onChangeEvt, {'val':scope.ngModel});
+					}
+				}
+			};
+			
+			/**
+			This removes a (selected) option from the scope.selectedOpts array (thus updating the DOM). It also re-filters the options by calling scope.filterOpts
+			@toc 8.5.
+			@method removeDisplayOpt
+			@param {Object} opt Object with option info. This MUST be a subset (one particular option item) of scope.opts as it's properties will be directly updated and are expected to update the scope.opts array accordingly.
+				@param {Mixed} val Value to remove
+			@param {Object} params
+				@param {Boolean} bulkRemove True if this function is being called in a loop so just want to remove the option and do the bare minimum (i.e. for performance, won't call scope.filterOpts each time - the calling function will be responsible for calling this ONCE at the end of the loop)
+			*/
+			function removeDisplayOpt(opt, params) {
+				opt.selected ="0";
+				//remove from selected opts array
+				var index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', opt.val, {});
+				if(index1 >-1) {
+					scope.selectedOpts.splice(index1, 1);
+				}
+				if(params.bulkRemove ===undefined || !params.bulkRemove) {
+					scope.filterOpts({});
+				}
+			}
+			
+			//9.
+			/*
+			@param params
+				id (required) =instance id for this directive (to indentify which select to update opts for); must match the "id" attribute declared on this directive
+				opts (required) =array []{} of opts to update/add
+				type (defaults to 'default') =string of which optsList to add/update these to
+				replace (default true) =boolean true if these new opts will overwrite existing ones of this type (if false, they'll just be appended to the existing ones - NOTE: new opts should not conflict with existing ones; don't pass in any duplicates as these are NOT checked for here)
+			*/
+			scope.$on('jrgMultiselectUpdateOpts', function(evt, params) {
+				if(params.id ==attrs.id) {		//scope.$on will be called on EVERY instance BUT only want to update ONE of them
+					var defaults ={'type':'default', 'replace':true};
+					params =angular.extend(defaults, params);
+					if(optsList[params.type] ===undefined || params.replace ===true) {
+						optsList[params.type] =params.opts;
+					}
+					else {
+						optsList[params.type] =optsList[params.type].concat(params.opts);
+					}
+					formOpts({});		//re-form opts with the new ones
+					selectOpts(scope.ngModel, {});
+				}
+			});
+			
+			//10.
+			/*
+			concats all types in optsList into a final set of options to be selected from / displayed
+			@param params
+				//unselectAll =boolean true to unselect all opts as well
+				keys (optional) =array [] of which optsList keys to copy over; otherwise all will be copied over
+			*/
+			function formOpts(params) {
+				var keys, ii;
+				if(params.keys !==undefined) {
+					keys =params.keys;
+				}
+				else {		//copy them all
+					keys =[];
+					var counter =0;
+					for(var xx in optsList) {
+						keys[counter] =xx;
+						counter++;
+					}
+				}
+				scope.opts =[];		//reset first
+				for(ii =0; ii<keys.length; ii++) {
+					scope.opts =scope.opts.concat(optsList[keys[ii]]);
+				}
+				
+				//add some keys to each opt
+				for(ii =0; ii<scope.opts.length; ii++) {
+					var index1 =libArray.findArrayIndex(scope.selectedOpts, 'val', scope.opts[ii].val, {});
+					if(index1 <0) {		//if not selected
+						scope.opts[ii].selected ="0";		//start visible
+					}
+				}
+			}
+			
+			//12.
+			scope.createNewOpt =function(params) {
+				if(createNewCheck({})) {
+					if(optsList.created ===undefined) {
+						optsList.created =[];
+					}
+					//var curIndex =optsList.created.length;
+					var newOpt ={'val':scope.modelInput, 'name':scope.modelInput, 'selected':'0'};
+					optsList.created[optsList.created.length] =newOpt;
+					formOpts({});		//re-form opts with the new ones
+					//select this opt
+					scope.selectOpt(newOpt, {});
+				}
+			};
+			
+			//12.5.
+			function createNewCheck(params) {
+				var valid =false;
+				var val =scope.modelInput;
+				if(val.length >=attrs.minLengthCreate) {
+					//make sure this value doesn't already exist
+					var index1 =libArray.findArrayIndex(scope.opts, 'val', val, {});
+					if(index1 <0) {		//if doesn't already exist
+						valid =true;
+					}
+				}
+				return valid;
+			}
+			
+			//0.5.
+			//copy default (passed in) opts to final / combined (searchable) opts
+			formOpts({});
+			//select default opts
+			selectOpts(scope.ngModel, {});
+			
+			//0.75.
+			scope.$watch('ngModel', function(newVal, oldVal) {
+				//if(newVal !=oldVal) {
+				//if(1) {		//comparing equality on arrays doesn't work well..
+				if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
+					removeOpts({valsToRemove: oldVal, displayOnly:true});		//remove old values first
+					selectOpts(scope.ngModel, {});
+				}
+			});
+			
+			//0.8.
+			scope.$watch('selectOpts', function(newVal, oldVal) {
+				if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
+					optsList['default'] =newVal;
+					formOpts({});		//re-form opts with the new ones
+					selectOpts(scope.ngModel, {});
+				}
+			});
 		}
 		
 		/*
