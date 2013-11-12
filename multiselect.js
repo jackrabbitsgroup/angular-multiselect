@@ -87,7 +87,7 @@ controller / js:
 angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultiselect', ['jrgMultiselectData', 'jrgLibArray', '$timeout', '$filter', function (jrgMultiselectData, libArray, $timeout, $filter) {
 
 	return {
-		priority: 100,		//must be below 500 to work with formInput directive
+		// priority: 100,		//must be below 500 to work with formInput directive		//UPDATE: actually this shouldn't matter at all since they're DIFFRENT/nested directives, NOT on the same element?
 		scope: {
 			selectOpts:'=',
 			ngModel:'=',
