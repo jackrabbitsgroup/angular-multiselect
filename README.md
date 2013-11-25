@@ -20,7 +20,10 @@ So, IF you're already using jQuery anyway (in which case jQuery doesn't really a
 http://jackrabbitsgroup.github.io/angular-multiselect/
 
 ## Dependencies
-- `lesshat` (for multiselect.less)
+
+- optional
+	- `lesshat` (for multiselect.less)
+	
 See `bower.json` and `index.html` in the `gh-pages` branch for a full list / more details
 
 ## Install
@@ -29,7 +32,7 @@ See `bower.json` and `index.html` in the `gh-pages` branch for a full list / mor
 		1. add `"angular-multiselect": "latest"` to your `bower.json` file then run `bower install` OR run `bower install angular-multiselect`
 2. include the files in your app
 	1. multiselect.min.js
-	2. multiselect.less
+	2. multiselect.less OR multiselect.min.css OR multiselect.css
 3. include the module in angular (i.e. in `app.js`) - `jackrabbitsgroup.angular-multiselect`
 
 See the `gh-pages` branch, files `bower.json` and `index.html` for a full example.
