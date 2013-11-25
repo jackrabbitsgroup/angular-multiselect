@@ -4,12 +4,34 @@
 
 var transition = function transition(value) {
   value = value || 'all 0 ease 0';
+  var prefixes = ['-webkit-', '-moz-', '-o-', ''];
+  var prefixedProperties = ['column', 'transform', 'filter'];
   var valueRegex = /(?:\d)(?:ms|s)/gi;
   var numWithoutValue = /(?:\s|^)(\.?\d+\.?\d*)(?![^(]*\)|\w|%)/gi;
 
-  if (/^[-a-z0-9]*,/.test(value)) {
+  if (/^[-a-zA-Z0-9().\/]*,/.test(value)) {
     value = value.replace(/(?:,)(?![^(]*\))/g, '');
   }
+
+  var subSplit = value.split(/(?:,)(?![^(]*\))/g);
+  subSplit.forEach(function(css, index) {
+    prefixedProperties.forEach(function(property) {
+      if (css.indexOf(property) !== -1) {
+        subSplit[index] = '';
+        prefixes.forEach(function(vendor, i) {
+          subSplit[index] += css.trim().replace(new RegExp(property, 'g'), function(match) {
+            return vendor + match;
+          });
+
+          if (i < prefixes.length - 1) {
+            subSplit[index] += ',';
+          }
+        });
+      }
+    });
+  });
+
+  value = subSplit.join(',');
 
   if (!valueRegex.test(value) && value !== '0') {
     value = value.replace(numWithoutValue, function(match) {
@@ -34,7 +56,7 @@ transition.webkit = function transition(value) {
   var valueRegex = /(?:\d)(?:ms|s)/gi;
   var numWithoutValue = /(?:\s|^)(\.?\d+\.?\d*)(?![^(]*\)|\w|%)/gi;
 
-  if (/^[-a-z0-9]*,/.test(value)) {
+  if (/^[-a-zA-Z0-9().\/]*,/.test(value)) {
     value = value.replace(/(?:,)(?![^(]*\))/g, '');
   }
 
@@ -69,7 +91,7 @@ transition.moz = function transition(value) {
   var valueRegex = /(?:\d)(?:ms|s)/gi;
   var numWithoutValue = /(?:\s|^)(\.?\d+\.?\d*)(?![^(]*\)|\w|%)/gi;
 
-  if (/^[-a-z0-9]*,/.test(value)) {
+  if (/^[-a-zA-Z0-9().\/]*,/.test(value)) {
     value = value.replace(/(?:,)(?![^(]*\))/g, '');
   }
 
@@ -104,7 +126,7 @@ transition.opera = function transition(value) {
   var valueRegex = /(?:\d)(?:ms|s)/gi;
   var numWithoutValue = /(?:\s|^)(\.?\d+\.?\d*)(?![^(]*\)|\w|%)/gi;
 
-  if (/^[-a-z0-9]*,/.test(value)) {
+  if (/^[-a-zA-Z0-9().\/]*,/.test(value)) {
     value = value.replace(/(?:,)(?![^(]*\))/g, '');
   }
 
