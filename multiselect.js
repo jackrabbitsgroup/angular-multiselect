@@ -300,7 +300,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			
 			//15.
 			scope.focusInput =function(params) {
-				document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				if(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)) {		//in case currently hidden, in which case this will be null and error
+					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				}
 				scope.clickInput({});
 			};
 			
@@ -446,7 +448,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 				//reset search key & refocus on input
 				scope.modelInput ='';		//reset
-				document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				if(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)) {		//in case currently hidden, in which case this will be null and error
+					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
+				}
 				//jrgMultiselectData.toggleDropdown(attrs.id, {'show':true});
 				scope.filterOpts({});
 				if(valChanged) {

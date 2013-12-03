@@ -1,5 +1,10 @@
 Version numbers correspond to `bower.json` version (package.json files is NOT necessarily in sync)
 
+# 1.0.5
+## Bug Fixes
+- prevent errors if select is hidden (i.e. from parent hidden)
+
+
 # 1.0.4
 - generate multiselect.css and multiselect.min.css for non-LESS support
 
