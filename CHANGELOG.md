@@ -1,6 +1,6 @@
 Version numbers correspond to `bower.json` version (package.json files is NOT necessarily in sync)
 
-# 1.0.5-1
+# 1.0.6
 ## Bug Fixes
 - add initNgModel function and call on $watch('ngModel'..) to prevent ngModel from being undefined
 
