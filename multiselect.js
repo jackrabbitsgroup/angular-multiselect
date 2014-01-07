@@ -212,6 +212,10 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				else if(typeof(scope.ngModel) =='string') {		//convert to array
 					scope.ngModel =[scope.ngModel];
 				}
+				//blank out selectedOpts if ngModel is empty
+				if(scope.ngModel.length <1) {
+					scope.selectedOpts =[];
+				}
 			}
 			initNgModel({});
 			
