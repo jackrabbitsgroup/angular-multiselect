@@ -204,13 +204,17 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					}
 				}
 			}
-		
-			if(scope.ngModel ===undefined) {
-				scope.ngModel =[];
+			
+			function initNgModel(params) {
+				if(scope.ngModel ===undefined) {
+					scope.ngModel =[];
+				}
+				else if(typeof(scope.ngModel) =='string') {		//convert to array
+					scope.ngModel =[scope.ngModel];
+				}
 			}
-			else if(typeof(scope.ngModel) =='string') {		//convert to array
-				scope.ngModel =[scope.ngModel];
-			}
+			initNgModel({});
+			
 			if(scope.options ===undefined) {
 				scope.options ={};
 			}
@@ -604,6 +608,8 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				//if(1) {		//comparing equality on arrays doesn't work well..
 				if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
 					removeOpts({valsToRemove: oldVal, displayOnly:true});		//remove old values first
+					//reset / error check ngModel (do NOT allow undefined, which will cause errors later)
+					initNgModel({});
 					selectOpts(scope.ngModel, {});
 				}
 			});
