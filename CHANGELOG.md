@@ -1,5 +1,9 @@
 Version numbers correspond to `bower.json` version (package.json files is NOT necessarily in sync)
 
+# 1.0.7
+## Bug Fixes
+- clear selectedOpts in initNgModel function if blank ngModel
+
 # 1.0.6
 ## Bug Fixes
 - add initNgModel function and call on $watch('ngModel'..) to prevent ngModel from being undefined
