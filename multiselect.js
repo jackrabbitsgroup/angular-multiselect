@@ -309,6 +309,12 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			};
 			
 			/**
+			@property lastLoadSearchVal Used to track what the last loadMore search value was to avoid infinite loop of re-searching in case no results (since filterOpts function will auto call loadMore if no results)
+			@type Boolean
+			*/
+			var lastLoadSearchVal =false;
+			
+			/**
 			Form object {} of all options by category; start with just one - the default select opts. This is to allow multiple different types of opts to be used/loaded (i.e. when loading more results from AJAX or when user creates a new option) so can differentiate them and append to/update or show only certain categories of options. All these categories are later merged into one scope.opts array for actual use.
 			@property optsList
 			@type Object
@@ -395,7 +401,8 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			@method loadMoreDtv
 			*/
 			function loadMoreDtv(params) {
-				if(scope.modelInput.length >=scope.config1.loadMoreMinSearchLength) {
+				if(scope.modelInput !==lastLoadSearchVal && scope.modelInput.length >=scope.config1.loadMoreMinSearchLength) {
+					lastLoadSearchVal =scope.modelInput;		//update for next time
 					if(scope.loadMore !==undefined && scope.loadMore() !==undefined && typeof(scope.loadMore()) =='function') {		//this is an optional scope attr so don't assume it exists
 						scope.loadMore()({'searchText':scope.modelInput}, function(ret1) {
 							//over-write loadMore key in optsList then re-form options
