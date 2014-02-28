@@ -1,5 +1,9 @@
 Version numbers correspond to `bower.json` version (package.json files is NOT necessarily in sync)
 
+# 1.0.9
+## Bug Fixes
+- avoid infinite loop of calling loadMore function repeatedly if no results come back
+
 # 1.0.8
 ## Features
 - add loadMore functionality so can add more items while searching (i.e. from backend / via AJAX)
