@@ -1,40 +1,42 @@
 /**
-@todo
-- maybe
-	- load more / calling function to load more opts & then update them (i.e. when scroll to bottom or click "more")
-		- use timeout for searching more & auto search more if result isn't found in default/javascript/local opts
+If supplied, the 'loadMore' function will be called/triggered one of two ways:
+1. after certain amount of time elapses after searching for a value (i.e. after typing to search)
+2. immediately after search if no results
 
 USAGE functions:
 //to update options after it's been written / initialized:		//NOTE: this should NOT be necessary anymore as $watch is being used on opts
 $scope.$broadcast('jrgMultiselectUpdateOpts', {'id':'select1', 'opts':optsNew});
 
 
-Table of Contents
+@toc
 controller
-//0. init vars, etc.
-//15. $scope.focusInput
-//16. $scope.keyupInput
-//14. selectOpts
-//11. filterOpts
-//13. $scope.keydownInput
-//6. $scope.clickInput
-//7. $scope.selectOpt
-//8. $scope.removeOpt
-//8.5. removeDisplayOpt
-//9. $scope.$on('jrgMultiselectUpdateOpts',..
-//10. formOpts
-//12. $scope.createNewOpt
-	//12.5. createNewCheck
-//0.5. init part 2 (after functions are declared) - select default options, etc.
-//0.75. $scope.$watch('ngModel',.. - to update selected values on change
-//0.8. $scope.$watch('selectOpts',..
+0. init vars, etc.
+18. preLoadMore
+	18.5. loadMoreDtv
+15. $scope.focusInput
+16. $scope.keyupInput
+14. selectOpts
+17. removeOpts
+11. filterOpts
+13. $scope.keydownInput
+6. $scope.clickInput
+7. $scope.selectOpt
+8. $scope.removeOpt
+8.5. removeDisplayOpt
+9. $scope.$on('jrgMultiselectUpdateOpts',..
+10. formOpts
+12. $scope.createNewOpt
+	12.5. createNewCheck
+0.5. init part 2 (after functions are declared) - select default options, etc.
+0.75. $scope.$watch('ngModel',.. - to update selected values on change
+0.8. $scope.$watch('selectOpts',..
 
 jrgMultiselectData service
-//1. init
-//2. toggleDropdown
-//3. getFocusCoords
-//4. blurInput
-//5. mouseInDiv
+1. init
+2. toggleDropdown
+3. getFocusCoords
+4. blurInput
+5. mouseInDiv
 
 
 @param {Object} scope (attrs that must be defined on the scope (i.e. in the controller) - they can't just be defined in the partial html). REMEMBER: use snake-case when setting these on the partial!
@@ -44,6 +46,14 @@ jrgMultiselectData service
 	@param {Mixed} ngModel
 	@param {Object} config
 		@param {Number} [createNew =0] int 1 or 0; 1 to allow creating a new option from what the user typed IF it doesn't already exist
+		@param {Number} [loadMoreDelay =750] Milliseconds to pause after type a search value before loading more
+		@param {Number} [loadMoreMinSearchLength =2] Search input length must be at least this long to trigger/call loadMore function
+	@param {Function} [loadMore] Function to call to trigger loading more (i.e. when no more results or after config.loadMoreDelay). This function will be passed the following arguments when called:
+		@param {Object} params
+			@param {String} searchText What was searched for
+		@param {Function} callback Function that should be called with the follow arguments:
+			@param {Object} params
+				@param {Array} itemsMore The items/options to add to the search results
 
 @param {Object} attrs REMEMBER: use snake-case when setting these on the partial! i.e. scroll-load='1' NOT scrollLoad='1'
 	@param {String} [id] Id for this element (required to use jrgMultiselectUpdateOpts event to update options)
@@ -53,7 +63,8 @@ jrgMultiselectData service
 		@param {Mixed} val The current value (of ng-model)
 
 
-EXAMPLE usage:
+@usage:
+//EXAMPLE 1:
 partial / html:
 	<div jrg-multiselect id='select1' select-opts='selectOpts' ng-model='selectVals' config='config'></div>
 
@@ -79,7 +90,52 @@ controller / js:
 		$scope.selectOpts =optsNew;
 	}, 500);
 
-//end: EXAMPLE usage
+	
+	
+//EXAMPLE 2: loadMore (i.e. loading/searching from backend)
+partial / html:
+	<div jrg-multiselect id='select1' select-opts='selectOpts' ng-model='selectVals' config='config' load-more='loadMore'></div>
+
+controller / js:
+	$scope.selectVals =[];
+	$scope.config ={};
+	$scope.selectOpts =[
+		{'val':'one', 'name':'One'},
+		{'val':'two', 'name':'Two'},
+		{'val':'three', 'name':'Three'},
+		{'val':'four', 'name':'Four'},
+		{'val':'five', 'name':'Five'}
+	];
+	
+	//handle load more (callbacks)
+	var itemsMore =
+	[
+		{'val':'mOne', 'name':'More One'},
+		{'val':'mTwo', 'name':'More Two'},
+		{'val':'mThree', 'name':'More Three'},
+		{'val':'mFour', 'name':'More Four'},
+		{'val':'mFive', 'name':'More Five'}
+	];
+	
+	//@param params
+	//	@param {String} searchText
+	$scope.loadMore =function(params, callback) {
+		//filter results
+		var searchText =params.searchText.toLowerCase();
+		var filteredOpts =[];
+		var ii;
+		for(ii =0; ii<itemsMore.length; ii++) {
+			if(itemsMore[ii].name.toLowerCase().indexOf(searchText) >-1) {
+				filteredOpts.push(itemsMore[ii]);
+			}
+		}
+		//return results
+		callback({
+			itemsMore: itemsMore
+		});
+	};
+	
+//end: usage
 */
 
 'use strict';
@@ -91,7 +147,8 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 		scope: {
 			selectOpts:'=',
 			ngModel:'=',
-			config:'=?'
+			config:'=?',
+			loadMore: '&?'
 		},
 
 		replace: true,
@@ -189,7 +246,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			
 			scope.config1 ={};		//can't use scope.config in case it's not defined/set otherwise get "Non-assignable model expression.." error..
 			var defaultConfig ={
-				createNew: 0
+				createNew: 0,
+				loadMoreDelay: 750,		//number of milliseconds
+				loadMoreMinSearchLength: 2		//search input must be at least this long to trigger/call loadMore function
 			};
 			if(!scope.config || scope.config ===undefined) {
 				scope.config1 =defaultConfig;
@@ -237,6 +296,16 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				'selectOptBlurReset':225,		//must be LONGER than onBlurDelay to keep options displayed after select one
 				'clickInputBlurReset':225,
 				'onBlurDelay':125		//this must be long enough to ensure the selectOpts click function fires BEFORE this (otherwise the options dropdown will close BEFORE the click event fires and the option will NOT be selected at all..
+			};
+			
+			/**
+			@property trigs Object of triggers
+			@type Object
+			*/
+			var trigs ={
+				timeout: {
+					loadMore: false
+				}
 			};
 			
 			/**
@@ -306,7 +375,44 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				});
 			}, 50);
 			
-			//15.
+			
+			/**
+			@toc 18.
+			@method preLoadMore
+			*/
+			function preLoadMore(params) {
+				//cancel timeout if currently running
+				if(trigs.timeout.loadMore) {
+					$timeout.cancel(trigs.timeout.loadMore);
+				}
+				trigs.timeout.loadMore =$timeout(function() {
+					loadMoreDtv({});
+				}, scope.config1.loadMoreDelay);
+			}
+			
+			/**
+			@toc 18.5.
+			@method loadMoreDtv
+			*/
+			function loadMoreDtv(params) {
+				if(scope.modelInput.length >=scope.config1.loadMoreMinSearchLength) {
+					if(scope.loadMore !==undefined && scope.loadMore() !==undefined && typeof(scope.loadMore()) =='function') {		//this is an optional scope attr so don't assume it exists
+						scope.loadMore()({'searchText':scope.modelInput}, function(ret1) {
+							//over-write loadMore key in optsList then re-form options
+							if(ret1.itemsMore !==undefined) {
+								optsList.loadMore =ret1.itemsMore;
+								formOpts({});		//re-form opts with the new ones
+								scope.filterOpts({});
+								selectOpts(scope.ngModel, {});
+							}
+						});
+					}
+				}
+			}
+			
+			/**
+			@toc 15.
+			*/
 			scope.focusInput =function(params) {
 				if(document.getElementById(jrgMultiselectData.data[attrs.id].ids.input)) {		//in case currently hidden, in which case this will be null and error
 					document.getElementById(jrgMultiselectData.data[attrs.id].ids.input).focus();
@@ -331,8 +437,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 			*/
 			
 			
-			//14.
-			/*
+			/**
+			@toc 14.
+			@method selectOpts
 			@param optsArray =array [] of option values to select (will go through al the options and match the values to them then call the "selectOpt" function for each one that's matched)
 			@param params
 			*/
@@ -387,7 +494,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			}
 			
-			//13.
+			/**
+			@toc 13.
+			*/
 			scope.keydownInput =function(evt, params) {
 				if(evt.keyCode ==keycodes.enter) {
 					//alert("enter");
@@ -398,9 +507,15 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 						scope.createNewOpt({});
 					}
 				}
+				else {
+					//start load more timeout
+					preLoadMore({});
+				}
 			};
 			
-			//11.
+			/**
+			@toc 11.
+			*/
 			scope.filterOpts =function(params) {
 				scope.filteredOpts =$filter('filter')(scope.opts, {name:scope.modelInput, selected:"0"});
 				if(scope.filteredOpts.length <1) {
@@ -410,10 +525,14 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 					else {
 						scope.createNewAllowed =false;
 					}
+					//immediately try to load more since no results
+					loadMoreDtv({});
 				}
 			};
 			
-			//6.
+			/**
+			@toc 6.
+			*/
 			scope.clickInput =function(params) {
 				scope.filterOpts({});
 				jrgMultiselectData.data[attrs.id].skipBlur =true;		//avoid immediate closing from document click handler
@@ -427,7 +546,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}, evtTimings.clickInputBlurReset);
 			};
 			
-			//7.
+			/**
+			@toc 7.
+			*/
 			scope.selectOpt =function(opt, params) {
 				var valChanged =false;		//track if something actually changed (other than just display)
 				//alert(opt.name);
@@ -514,13 +635,13 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			}
 			
-			//9.
-			/*
-			@param params
-				id (required) =instance id for this directive (to indentify which select to update opts for); must match the "id" attribute declared on this directive
-				opts (required) =array []{} of opts to update/add
-				type (defaults to 'default') =string of which optsList to add/update these to
-				replace (default true) =boolean true if these new opts will overwrite existing ones of this type (if false, they'll just be appended to the existing ones - NOTE: new opts should not conflict with existing ones; don't pass in any duplicates as these are NOT checked for here)
+			/**
+			@toc 9.
+			@param {Object} params
+				@param {String} id Instance id for this directive (to indentify which select to update opts for); must match the "id" attribute declared on this directive
+				@param {Array} opts Array []{} of opts to update/add
+				@param {String} [type ='default'] Which optsList to add/update these to
+				@param {Boolean} [replace =true] True if these new opts will overwrite existing ones of this type (if false, they'll just be appended to the existing ones - NOTE: new opts should not conflict with existing ones; don't pass in any duplicates as these are NOT checked for here)
 			*/
 			scope.$on('jrgMultiselectUpdateOpts', function(evt, params) {
 				if(params.id ==attrs.id) {		//scope.$on will be called on EVERY instance BUT only want to update ONE of them
@@ -537,8 +658,8 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			});
 			
-			//10.
-			/*
+			/**
+			@toc 10.
 			concats all types in optsList into a final set of options to be selected from / displayed
 			@param params
 				//unselectAll =boolean true to unselect all opts as well
@@ -571,7 +692,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			}
 			
-			//12.
+			/**
+			@toc 12.
+			*/
 			scope.createNewOpt =function(params) {
 				if(createNewCheck({})) {
 					if(optsList.created ===undefined) {
@@ -586,7 +709,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			};
 			
-			//12.5.
+			/**
+			@toc 12.5.
+			*/
 			function createNewCheck(params) {
 				var valid =false;
 				var val =scope.modelInput;
@@ -600,13 +725,17 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				return valid;
 			}
 			
-			//0.5.
+			/**
+			@toc 0.5.
+			*/
 			//copy default (passed in) opts to final / combined (searchable) opts
 			formOpts({});
 			//select default opts
 			selectOpts(scope.ngModel, {});
 			
-			//0.75.
+			/**
+			@toc 0.75.
+			*/
 			scope.$watch('ngModel', function(newVal, oldVal) {
 				//if(newVal !=oldVal) {
 				//if(1) {		//comparing equality on arrays doesn't work well..
@@ -618,7 +747,9 @@ angular.module('jackrabbitsgroup.angular-multiselect', []).directive('jrgMultise
 				}
 			});
 			
-			//0.8.
+			/**
+			@toc 0.8.
+			*/
 			scope.$watch('selectOpts', function(newVal, oldVal) {
 				if(!angular.equals(oldVal, newVal)) {		//very important to do this for performance reasons since $watch runs all the time
 					optsList['default'] =newVal;
@@ -648,7 +779,9 @@ var inst ={
 	
 	inited:false,
 	
-	//1.
+	/**
+	@toc 1.
+	*/
 	init: function(params) {
 		if(!this.inited) {
 			var thisObj =this;
@@ -668,8 +801,8 @@ var inst ={
 		}
 	},
 	
-	//2.
-	/*
+	/**
+	@toc 2.
 	@param params
 		hide =boolean true to hide it
 		show =boolean true to show it
@@ -685,7 +818,9 @@ var inst ={
 		}
 	},
 	
-	//3.
+	/**
+	@toc 3.
+	*/
 	getFocusCoords: function(instId, params) {
 		var ids ={'displayBox':this.data[instId].ids.displayBox, 'dropdown':this.data[instId].ids.dropdown};
 		var eles ={};
@@ -712,7 +847,9 @@ var inst ={
 		this.toggleDropdown(instId, {'hide':true});		//revert
 	},
 	
-	//4.
+	/**
+	@toc 4.
+	*/
 	blurInput: function(instId, params) {
 		if(!this.data[instId].skipBlur) {
 			//console.debug('blurring '+instId);
@@ -727,8 +864,8 @@ var inst ={
 		// }
 	},
 	
-	//5.
-	/*
+	/**
+	@toc 5.
 	//Figure out if the mouse is within the area of the input and/or dropdown at the time of this event (usually a click/touch)
 	@param ee =dom event
 	@param instId
@@ -767,8 +904,8 @@ return inst;
 .factory('jrgLibArray', [function() {
 var inst ={
 
-	//9.
-	/*
+	/**
+	@toc 9.
 	distinguishes between an object/hash (i.e. {'key':'val'}) and (scalar) array (i.e. [1, 2, 3])
 	*/
 	isArray: function(array1, params) {
@@ -786,8 +923,8 @@ var inst ={
 		}
 	},
 	
-	//4.
-	/*!
+	/**
+	@toc 4.
 	//TO DO - copying issue where scalar array is being converted to object..?
 	By default, arrays/objects are assigned by REFERENCE rather than by value (so var newArray =oldArray means that if you update newArray later, it will update oldArray as well, which can lead to some big problems later). So this function makes a copy by VALUE of an array without these backwards overwriting issues
 	Recursive function so can hog memory/performance easily so set "skip keys" when possible
@@ -845,8 +982,8 @@ var inst ={
 		return newArray;
 	},
 	
-	//1.
-	/*
+	/**
+	@toc 1.
 	Returns the index of an 2D []{} associative array when given the key & value to search for within the array
 	@param array =2D array []{} to search
 	@param key =associative key to check value against

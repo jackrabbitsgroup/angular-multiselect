@@ -18,13 +18,17 @@ config(['$routeProvider', '$locationProvider', '$compileProvider', function($rou
 	
 	// var staticPath ='/';
 	var staticPath;
-	staticPath ='/angular-directives/angular-multiselect/';		//local
+	// staticPath ='/angular-directives/angular-multiselect/';		//local
+	staticPath ='/';		//nodejs (local)
 	staticPath ='/angular-multiselect/';		//gh-pages
 	var appPathRoute =staticPath;
 	var pagesPath =staticPath+'pages/';
 	
 	
 	$routeProvider.when(appPathRoute+'home', {templateUrl: pagesPath+'home/home.html'});
+	
+	$routeProvider.when(appPathRoute+'basic', {templateUrl: pagesPath+'basic/basic.html'});
+	$routeProvider.when(appPathRoute+'load-more', {templateUrl: pagesPath+'loadMore/load-more.html'});
 
 	$routeProvider.otherwise({redirectTo: appPathRoute+'home'});
 	
