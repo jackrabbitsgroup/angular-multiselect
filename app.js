@@ -21,7 +21,8 @@ config(['$routeProvider', '$locationProvider', '$compileProvider', function($rou
 	// staticPath ='/angular-directives/angular-multiselect/';		//local
 	staticPath ='/';		//nodejs (local)
 	staticPath ='/angular-multiselect/';		//gh-pages
-	var appPathRoute =staticPath;
+	// var appPathRoute =staticPath;
+	var appPathRoute ='/';		//gh-pages
 	var pagesPath =staticPath+'pages/';
 	
 	
