@@ -1,5 +1,9 @@
 Version numbers correspond to `bower.json` version (package.json files is NOT necessarily in sync)
 
+# 1.0.8
+## Features
+- add loadMore functionality so can add more items while searching (i.e. from backend / via AJAX)
+
 # 1.0.7
 ## Bug Fixes
 - clear selectedOpts in initNgModel function if blank ngModel
